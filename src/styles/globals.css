@@ -1,0 +1,219 @@
+/* =============================================================================
+   Design Vault — Global Styles
+   Tailwind CSS v4 + Custom Design System
+   ============================================================================= */
+
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --bg-card: #1c1c1f;
+  --bg-card-hover: #27272a;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Text */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  /* Borders */
+  --border-default: #27272a;
+  --border-hover: #3f3f46;
+
+  /* Category Accent Colors */
+  --cat-components: #2563eb;
+  --cat-landing: #7c3aed;
+  --cat-dashboards: #059669;
+  --cat-portfolios: #d97706;
+  --cat-3d: #dc2626;
+  --cat-animation: #0891b2;
+  --cat-products: #4f46e5;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 60px rgba(37, 99, 235, 0.15);
+
+  /* Typography */
+  --font-body: 'Satoshi', system-ui, sans-serif;
+  --font-heading: 'General Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --nav-height: 64px;
+  --sidebar-width: 280px;
+  --sidebar-collapsed: 64px;
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+}
+
+/* Light mode overrides */
+[data-theme="light"] {
+  --bg-primary: #fafafa;
+  --bg-secondary: #f4f4f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f4f4f5;
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --border-default: #e4e4e7;
+  --border-hover: #d4d4d8;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Base Styles ───────────────────────────────────────────────────────────── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+code, pre, kbd {
+  font-family: var(--font-mono);
+}
+
+/* ─── Custom Scrollbar ──────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── Selection ─────────────────────────────────────────────────────────────── */
+
+::selection {
+  background: var(--cat-components);
+  color: white;
+}
+
+/* ─── Focus Visible ─────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--cat-components);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Custom Animations ─────────────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.4); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ─── Utility Classes ───────────────────────────────────────────────────────── */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--cat-components), var(--cat-landing));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass {
+  background: rgba(24, 24, 27, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-default);
+}
+
+.card-hover {
+  transition: all var(--duration-normal) var(--ease-out-expo);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-hover);
+}
+
+/* Category border accent on hover */
+.card-hover[data-category="component-libraries"]:hover { border-color: var(--cat-components); }
+.card-hover[data-category="landing-pages"]:hover { border-color: var(--cat-landing); }
+.card-hover[data-category="dashboards"]:hover { border-color: var(--cat-dashboards); }
+.card-hover[data-category="portfolios"]:hover { border-color: var(--cat-portfolios); }
+.card-hover[data-category="3d-webgl"]:hover { border-color: var(--cat-3d); }
+.card-hover[data-category="animation-libs"]:hover { border-color: var(--cat-animation); }
+.card-hover[data-category="products"]:hover { border-color: var(--cat-products); }
+
+/* ─── Lenis Smooth Scroll ───────────────────────────────────────────────────── */
+
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
