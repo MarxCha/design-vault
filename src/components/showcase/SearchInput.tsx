@@ -69,7 +69,7 @@ export function SearchInput({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] py-2.5 pl-10 pr-20 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:border-[var(--cat-components)] focus:outline-none"
+        className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] py-3 pl-10 pr-20 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:border-[var(--cat-components)] focus:outline-none"
       />
 
       {/* Keyboard shortcut hint */}

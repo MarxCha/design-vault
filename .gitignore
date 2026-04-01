@@ -38,3 +38,4 @@ playwright-report/
 # Uncomment to track screenshots in git:
 # public/screenshots/*.webp
 # public/screenshots/*.svg
+.vercel

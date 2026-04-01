@@ -50,6 +50,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             url={project.demo}
             color={category.color}
             name={project.name}
+            projectId={project.id}
             onPreviewClick={
               project.demo ? () => setShowPreview(true) : undefined
             }
