@@ -97,7 +97,7 @@ export default function HomePage() {
       <ScrollProgress />
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden px-6 pt-20 pb-16 md:pt-28 md:pb-20">
+      <section className="relative overflow-hidden px-6 pt-12 pb-10 md:pt-16 md:pb-14">
         <AuroraBackground />
 
         <div className="relative mx-auto max-w-5xl text-center">
@@ -118,7 +118,7 @@ export default function HomePage() {
 
           <SplitTextReveal
             as="h1"
-            className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-7xl"
+            className="mb-4 text-4xl font-bold leading-tight tracking-tight md:text-6xl"
           >
             Design Vault
           </SplitTextReveal>
@@ -127,7 +127,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="mx-auto mb-8 max-w-2xl text-lg text-[var(--text-secondary)] md:text-xl"
+            className="mx-auto mb-6 max-w-2xl text-base text-[var(--text-secondary)] md:text-lg"
           >
             Los{' '}
             <span className="text-gradient font-semibold">

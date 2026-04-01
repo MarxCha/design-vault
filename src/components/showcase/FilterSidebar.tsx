@@ -87,7 +87,7 @@ export function FilterSidebar({
     showFavoritesOnly;
 
   return (
-    <aside className="sticky top-[calc(var(--nav-height)+1.5rem)] h-fit w-full shrink-0 space-y-5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] p-4 lg:w-[260px]">
+    <aside className="sticky top-[calc(var(--nav-height)+1.5rem)] h-fit w-full shrink-0 space-y-5 rounded-xl border border-[var(--border-hover)] bg-[var(--bg-secondary)] p-5 shadow-sm lg:w-[260px]">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
