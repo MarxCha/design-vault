@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { Star, ExternalLink, Github, Puzzle, Eye } from 'lucide-react';
+import { Star, ExternalLink, Github, Puzzle, Eye, Heart } from 'lucide-react';
 import { type DesignProject, CATEGORIES } from '@/data/catalog';
 import { formatStars } from '@/lib/utils';
+import { useFilterStore } from '@/hooks/useFilter';
 import { ThumbnailPreview, LivePreview } from './LivePreview';
 
 interface ProjectCardProps {
@@ -23,6 +24,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const [showPreview, setShowPreview] = useState(false);
   const router = useRouter();
   const category = CATEGORIES[project.category];
+  const { favorites, toggleFavorite } = useFilterStore();
+  const isFavorite = favorites.includes(project.id);
 
   return (
     <>
@@ -63,10 +66,26 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {category.label}
           </div>
 
-          {/* Stars badge */}
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 text-[10px] backdrop-blur-sm">
-            <Star className="h-3 w-3 text-amber-400" />
-            <span className="text-white">{formatStars(project.stars)}</span>
+          {/* Stars badge + Favorite */}
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+            <div className="flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 text-[10px] backdrop-blur-sm">
+              <Star className="h-3 w-3 text-amber-400" />
+              <span className="text-white">{formatStars(project.stars)}</span>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFavorite(project.id);
+              }}
+              className="rounded-md bg-black/60 p-1 backdrop-blur-sm transition-colors hover:bg-black/80"
+              aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            >
+              <Heart
+                className={`h-3.5 w-3.5 transition-colors ${
+                  isFavorite ? 'fill-red-500 text-red-500' : 'text-white/70'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Hover overlay with actions */}

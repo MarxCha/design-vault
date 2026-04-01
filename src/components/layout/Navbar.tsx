@@ -3,7 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useMotionValueEvent, useScroll } from 'motion/react';
-import { Menu, X, Sun, Moon, Github } from 'lucide-react';
+import { Menu, X, Sun, Moon, SunDim, Github } from 'lucide-react';
+
+type Theme = 'dark' | 'dim' | 'light';
+const THEME_CYCLE: Theme[] = ['dark', 'dim', 'light'];
+const THEME_ICONS: Record<Theme, typeof Sun> = {
+  dark: Moon,
+  dim: SunDim,
+  light: Sun,
+};
+const THEME_LABELS: Record<Theme, string> = {
+  dark: 'Modo oscuro',
+  dim: 'Modo cálido',
+  light: 'Modo claro',
+};
 
 const NAV_LINKS = [
   { href: '/', label: 'Galería' },
@@ -15,18 +28,30 @@ const NAV_LINKS = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<Theme>('dark');
   const { scrollY } = useScroll();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('design-vault-theme') as Theme | null;
+    if (saved && THEME_CYCLE.includes(saved)) {
+      setTheme(saved);
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  }, []);
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     setIsScrolled(latest > 20);
   });
 
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
+    const currentIndex = THEME_CYCLE.indexOf(theme);
+    const next = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length];
     setTheme(next);
     document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('design-vault-theme', next);
   };
+
+  const ThemeIcon = THEME_ICONS[theme];
 
   return (
     <motion.header
@@ -65,13 +90,10 @@ export function Navbar() {
           <button
             onClick={toggleTheme}
             className="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-card)] hover:text-[var(--text-primary)]"
-            aria-label="Toggle theme"
+            aria-label={THEME_LABELS[theme]}
+            title={THEME_LABELS[theme]}
           >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
+            <ThemeIcon className="h-4 w-4" />
           </button>
 
           <a

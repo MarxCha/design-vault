@@ -1,48 +1,29 @@
 /**
  * Design Vault — Screenshot Capture Pipeline
- * 
- * Usa Playwright para capturar screenshots de cada demo URL
- * en el catálogo. Genera imágenes WebP optimizadas para la galería.
- * 
+ *
+ * Usa Playwright + Sharp para capturar screenshots WebP optimizados.
+ *
  * Uso:
  *   npx tsx scripts/capture-screenshots.ts
  *   npx tsx scripts/capture-screenshots.ts --id=magic-ui
- *   npx tsx scripts/capture-screenshots.ts --category=landing-pages
- * 
- * Requiere:
- *   pnpm add -D playwright @playwright/test
- *   npx playwright install chromium
  */
 
-import { chromium, type Browser, type Page } from 'playwright';
+import { chromium, type Browser } from 'playwright';
+import sharp from 'sharp';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// Importar catálogo (ajustar path según build)
-// En desarrollo, usar ts-node o tsx para ejecutar directamente
-const CATALOG_PATH = path.resolve(__dirname, '../src/data/catalog.ts');
-
-// Configuración
 const CONFIG = {
   outputDir: path.resolve(__dirname, '../public/screenshots'),
   viewports: {
     desktop: { width: 1440, height: 900 },
     mobile: { width: 390, height: 844 },
   },
-  timeout: 30_000,          // 30s máximo por página
-  waitAfterLoad: 3_000,     // 3s extra para que carguen animaciones
-  quality: 85,              // WebP quality
-  maxConcurrent: 3,         // Capturas simultáneas
+  timeout: 30_000,
+  waitAfterLoad: 3_000,
+  webpQuality: 82,
 };
 
-interface ProjectEntry {
-  id: string;
-  name: string;
-  demo?: string;
-  repo: string;
-}
-
-// Proyectos con demos conocidas
 const DEMO_URLS: Record<string, string> = {
   'shadcn-ui': 'https://ui.shadcn.com',
   'magic-ui': 'https://magicui.design',
@@ -55,7 +36,6 @@ const DEMO_URLS: Record<string, string> = {
   'astrowind': 'https://astrowind.vercel.app',
   'saas-boilerplate': 'https://react-saas.com',
   'page-ui-shipixen': 'https://pageui.shipixen.com',
-  'awesome-landing-pages': 'https://awesome-landingpages.vercel.app',
   'grafana': 'https://play.grafana.org',
   'tremor': 'https://npm.tremor.so',
   'tabler': 'https://preview.tabler.io',
@@ -87,7 +67,7 @@ const DEMO_URLS: Record<string, string> = {
   'penpot': 'https://penpot.app',
 };
 
-async function captureScreenshot(
+async function captureAndConvert(
   browser: Browser,
   id: string,
   url: string,
@@ -100,74 +80,70 @@ async function captureScreenshot(
 
   try {
     await page.setViewportSize(viewport);
-    
-    // Navegar con timeout
     await page.goto(url, {
       waitUntil: 'networkidle',
       timeout: CONFIG.timeout,
     });
-
-    // Esperar extra para animaciones
     await page.waitForTimeout(CONFIG.waitAfterLoad);
 
-    // Cerrar modales/banners de cookies si existen
+    // Dismiss cookie banners
     try {
       const cookieBtn = await page.$('[class*="cookie"] button, [id*="cookie"] button, [class*="consent"] button');
       if (cookieBtn) await cookieBtn.click();
-    } catch {
-      // Ignorar si no hay banner
-    }
+      await page.waitForTimeout(500);
+    } catch {}
 
-    // Capturar
-    await page.screenshot({
-      path: outputPath,
-      type: 'jpeg', // Playwright no soporta WebP directo, convertir después
-      quality: CONFIG.quality,
-      fullPage: false,
-    });
+    // Capture as PNG buffer, convert to WebP with sharp
+    const buffer = await page.screenshot({ type: 'png', fullPage: false });
+    await sharp(buffer)
+      .webp({ quality: CONFIG.webpQuality })
+      .toFile(outputPath);
 
-    console.log(`  ✅ ${filename} (${viewport.width}x${viewport.height})`);
+    const stats = fs.statSync(outputPath);
+    const sizeKb = (stats.size / 1024).toFixed(0);
+    console.log(`  ✅ ${filename} (${viewport.width}x${viewport.height}, ${sizeKb}KB)`);
     return true;
   } catch (error) {
-    console.log(`  ❌ ${filename}: ${(error as Error).message}`);
+    console.log(`  ❌ ${filename}: ${(error as Error).message.slice(0, 80)}`);
     return false;
   } finally {
     await page.close();
   }
 }
 
-async function generatePlaceholder(id: string): Promise<void> {
-  // Crear un placeholder SVG para proyectos sin demo
+function generatePlaceholder(id: string, color: string = '#2563eb'): void {
   const svg = `<svg width="1440" height="900" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="#18181b"/>
-    <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" 
-          font-family="system-ui" font-size="48" fill="#71717a">${id}</text>
-    <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" 
-          font-family="system-ui" font-size="24" fill="#52525b">Screenshot pendiente</text>
+    <defs>
+      <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#09090b"/>
+        <stop offset="100%" stop-color="#18181b"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <circle cx="720" cy="400" r="120" fill="${color}" opacity="0.1"/>
+    <text x="720" y="420" dominant-baseline="middle" text-anchor="middle"
+          font-family="system-ui" font-size="36" font-weight="600" fill="#fafafa">${id}</text>
+    <text x="720" y="470" dominant-baseline="middle" text-anchor="middle"
+          font-family="system-ui" font-size="18" fill="#71717a">design-vault.vercel.app</text>
   </svg>`;
 
-  const outputPath = path.join(CONFIG.outputDir, `${id}.svg`);
+  const outputPath = path.join(CONFIG.outputDir, `${id}-placeholder.svg`);
   fs.writeFileSync(outputPath, svg);
-  console.log(`  📎 ${id}.svg (placeholder)`);
+  console.log(`  📎 ${id}-placeholder.svg`);
 }
 
 async function main() {
-  // Parse args
   const args = process.argv.slice(2);
-  const filterById = args.find(a => a.startsWith('--id='))?.split('=')[1];
-  const filterByCat = args.find(a => a.startsWith('--category='))?.split('=')[1];
+  const filterById = args.find((a) => a.startsWith('--id='))?.split('=')[1];
 
-  // Asegurar directorio de salida
   fs.mkdirSync(CONFIG.outputDir, { recursive: true });
 
-  // Filtrar proyectos
   let projects = Object.entries(DEMO_URLS);
   if (filterById) {
     projects = projects.filter(([id]) => id === filterById);
   }
-  // Si se filtró por categoría, se necesitaría el catálogo completo
 
-  console.log(`\n🎯 Design Vault — Captura de Screenshots`);
+  console.log(`\n🎯 Design Vault — Screenshot Pipeline`);
   console.log(`   ${projects.length} proyectos a capturar\n`);
 
   const browser = await chromium.launch({ headless: true });
@@ -176,44 +152,25 @@ async function main() {
 
   for (const [id, url] of projects) {
     console.log(`\n📸 ${id} → ${url}`);
-    
-    // Desktop
-    const ok = await captureScreenshot(
-      browser, id, url,
-      CONFIG.viewports.desktop
-    );
-    
+
+    const ok = await captureAndConvert(browser, id, url, CONFIG.viewports.desktop);
+
     if (ok) {
-      // Mobile
-      await captureScreenshot(
-        browser, id, url,
-        CONFIG.viewports.mobile,
-        'mobile'
-      );
+      await captureAndConvert(browser, id, url, CONFIG.viewports.mobile, 'mobile');
       success++;
     } else {
-      await generatePlaceholder(id);
+      generatePlaceholder(id);
       failed++;
     }
   }
 
   await browser.close();
 
-  console.log(`\n${'='.repeat(50)}`);
-  console.log(`✅ Exitosos: ${success}`);
+  console.log(`\n${'═'.repeat(50)}`);
+  console.log(`✅ Exitosos: ${success} (${success * 2} archivos)`);
   console.log(`❌ Fallidos: ${failed}`);
   console.log(`📁 Output: ${CONFIG.outputDir}`);
-  console.log(`${'='.repeat(50)}\n`);
-
-  // TODO: Convertir JPEGs a WebP con sharp
-  // import sharp from 'sharp';
-  // const jpegFiles = fs.readdirSync(CONFIG.outputDir).filter(f => f.endsWith('.jpeg'));
-  // for (const file of jpegFiles) {
-  //   const input = path.join(CONFIG.outputDir, file);
-  //   const output = input.replace('.jpeg', '.webp');
-  //   await sharp(input).webp({ quality: CONFIG.quality }).toFile(output);
-  //   fs.unlinkSync(input);
-  // }
+  console.log(`${'═'.repeat(50)}\n`);
 }
 
 main().catch(console.error);

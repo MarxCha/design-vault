@@ -1,29 +1,34 @@
 # STATUS.md — Design Vault
 
-## Estado Actual: 🟡 SCAFFOLD COMPLETO — Listo para implementación
+## Estado Actual: 🟢 COMPLETO — Listo para deploy
 
-### Último Update: 2026-03-19
+### Ultimo Update: 2026-03-31
 
-**Fase**: Pre-implementación  
-**Sprint**: 0 (Planificación y scaffold)  
+**Fase**: Todas completadas (A-E)
 **Blocker activo**: Ninguno
 
 ### Lo que existe:
-- [x] CLAUDE.md con instrucciones completas
-- [x] Catálogo de 50 proyectos documentados
-- [x] Estructura de directorios creada
-- [x] Documentación por categoría (7 docs)
-- [x] Protocol v5 (.context/) configurado
-- [x] README.md
+- [x] Next.js 15 + React 19 + Tailwind v4
+- [x] Catalogo de 50 proyectos en catalog.ts
+- [x] 3 temas: Dark, Dim (Warm Charcoal), Light — con persistencia
+- [x] Fonts: Geist Sans + Geist Mono
+- [x] Zustand store centralizado (filtros, favoritos, viewMode, sortBy, persist)
+- [x] BentoGrid + viewMode toggle
+- [x] SearchInput con Cmd+K y sugerencias
+- [x] Favoritos (corazon, sidebar toggle, localStorage)
+- [x] CategoryHeader animado
+- [x] PageTransition
+- [x] AuroraBackground tema-aware
+- [x] 80 screenshots WebP (40 desktop + 40 mobile, 3MB total)
+- [x] SEO: OG images API, sitemap.xml, robots.txt, metadataBase
+- [x] Build: 99 paginas, 0 errores, 0 warnings
 
-### Siguiente paso inmediato:
-1. `pnpm create next-app@latest . --typescript --tailwind --eslint --app --src-dir`
-2. Instalar dependencias
-3. Implementar `catalog.ts` con los 50 proyectos
-4. Home page con bento grid
+### Pendiente:
+- [ ] Deploy a Vercel (requiere `npm i -g vercel && vercel`)
+- [ ] GSAP scroll effects avanzados (D2 — nice-to-have)
+- [ ] Responsive audit detallado (D3 — nice-to-have)
 
-### Métricas
-- Proyectos documentados: 50
-- Categorías: 7
-- Componentes extraíbles identificados: ~30 (pendiente catalogar)
-- Screenshots capturados: 0/50
+### Metricas
+- Proyectos: 50 | Categorias: 7 | Screenshots: 80 (40 desktop + 40 mobile)
+- Build size: 170KB first load (home), 102KB shared
+- Screenshots: 3MB total, promedio ~37KB por imagen

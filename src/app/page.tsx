@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Star, Blocks, X } from 'lucide-react';
+import { Star, Blocks, LayoutGrid, List } from 'lucide-react';
 import {
   CATALOG,
   CATEGORIES,
   getStats,
   type Category,
-  type Difficulty,
-  type DesignElement,
 } from '@/data/catalog';
+import { useFilterStore, type SortOption } from '@/hooks/useFilter';
 import { ProjectCard } from '@/components/showcase/ProjectCard';
-import { FilterSidebar, MobileFilterTrigger, type SortOption } from '@/components/showcase/FilterSidebar';
+import { BentoGrid } from '@/components/showcase/BentoGrid';
+import { SearchInput } from '@/components/showcase/SearchInput';
+import { FilterSidebar, MobileFilterTrigger } from '@/components/showcase/FilterSidebar';
 import { SplitTextReveal } from '@/components/effects/SplitTextReveal';
 import { ScrollProgress } from '@/components/effects/ScrollProgress';
 import { AuroraBackground } from '@/components/effects/AuroraBackground';
@@ -41,23 +42,30 @@ function sortProjects(projects: typeof CATALOG, sortBy: SortOption) {
 }
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>(
-    'all'
-  );
-  const [activeDifficulty, setActiveDifficulty] = useState<
-    Difficulty | 'all'
-  >('all');
-  const [activeElement, setActiveElement] = useState<DesignElement | 'all'>(
-    'all'
-  );
-  const [sortBy, setSortBy] = useState<SortOption>('stars');
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const {
+    searchQuery,
+    category: activeCategory,
+    difficulty: activeDifficulty,
+    element: activeElement,
+    viewMode,
+    sortBy,
+    favorites,
+    showFavoritesOnly,
+    setSearchQuery,
+    setCategory,
+    setDifficulty,
+    setElement,
+    setViewMode,
+    setSortBy,
+    clearFilters,
+  } = useFilterStore();
 
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const stats = getStats();
 
   const filteredProjects = useMemo(() => {
     const filtered = CATALOG.filter((project) => {
+      if (showFavoritesOnly && !favorites.includes(project.id)) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchesSearch =
@@ -69,43 +77,30 @@ export default function HomePage() {
       }
       if (activeCategory !== 'all' && project.category !== activeCategory)
         return false;
-      if (
-        activeDifficulty !== 'all' &&
-        project.difficulty !== activeDifficulty
-      )
+      if (activeDifficulty !== 'all' && project.difficulty !== activeDifficulty)
         return false;
-      if (
-        activeElement !== 'all' &&
-        !project.designElements.includes(activeElement)
-      )
+      if (activeElement !== 'all' && !project.designElements.includes(activeElement))
         return false;
       return true;
     });
     return sortProjects(filtered, sortBy);
-  }, [searchQuery, activeCategory, activeDifficulty, activeElement, sortBy]);
+  }, [searchQuery, activeCategory, activeDifficulty, activeElement, sortBy, showFavoritesOnly, favorites]);
 
   const activeFilterCount =
     (activeCategory !== 'all' ? 1 : 0) +
     (activeDifficulty !== 'all' ? 1 : 0) +
-    (activeElement !== 'all' ? 1 : 0);
-
-  const clearAllFilters = () => {
-    setActiveCategory('all');
-    setActiveDifficulty('all');
-    setActiveElement('all');
-    setSearchQuery('');
-  };
+    (activeElement !== 'all' ? 1 : 0) +
+    (showFavoritesOnly ? 1 : 0);
 
   return (
     <>
       <ScrollProgress />
 
-      {/* ═══ HERO SECTION ═══ */}
+      {/* HERO SECTION */}
       <section className="relative overflow-hidden px-6 pt-20 pb-16 md:pt-28 md:pb-20">
         <AuroraBackground />
 
         <div className="relative mx-auto max-w-5xl text-center">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -114,14 +109,13 @@ export default function HomePage() {
           >
             <Blocks className="h-4 w-4 text-[var(--cat-components)]" />
             <span>{stats.totalProjects} proyectos curados</span>
-            <span className="text-[var(--text-muted)]">·</span>
+            <span className="text-[var(--text-muted)]">&middot;</span>
             <Star className="h-3.5 w-3.5 text-amber-400" />
             <span>
               {(stats.totalStars / 1000).toFixed(0)}K+ estrellas
             </span>
           </motion.div>
 
-          {/* Title */}
           <SplitTextReveal
             as="h1"
             className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-7xl"
@@ -143,7 +137,7 @@ export default function HomePage() {
             de nivel Awwwards.
           </motion.p>
 
-          {/* Inline category pills */}
+          {/* Category pills */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -154,24 +148,16 @@ export default function HomePage() {
               <button
                 key={key}
                 onClick={() =>
-                  setActiveCategory(
-                    activeCategory === key ? 'all' : (key as Category)
-                  )
+                  setCategory(activeCategory === key ? 'all' : (key as Category))
                 }
                 className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs transition-all hover:scale-105"
                 style={{
                   borderColor:
-                    activeCategory === key
-                      ? cat.color
-                      : 'var(--border-default)',
+                    activeCategory === key ? cat.color : 'var(--border-default)',
                   backgroundColor:
-                    activeCategory === key
-                      ? `${cat.color}15`
-                      : 'var(--bg-secondary)',
+                    activeCategory === key ? `${cat.color}15` : 'var(--bg-secondary)',
                   color:
-                    activeCategory === key
-                      ? cat.color
-                      : 'var(--text-secondary)',
+                    activeCategory === key ? cat.color : 'var(--text-secondary)',
                 }}
               >
                 <span
@@ -185,34 +171,50 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ MAIN CONTENT: Sidebar + Grid ═══ */}
+      {/* MAIN CONTENT: Sidebar + Grid */}
       <section className="px-6 pb-32" id="catalogo">
         <div className="mx-auto max-w-[1400px]">
-          {/* Search bar — full width */}
+          {/* Search bar + view mode toggle */}
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                placeholder="Buscar proyectos, stacks, efectos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-card)] py-3 pl-10 pr-10 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:border-[var(--cat-components)] focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <MobileFilterTrigger
-              hasActiveFilters={activeFilterCount > 0}
-              activeCount={activeFilterCount}
-              onClick={() => setShowMobileFilters(!showMobileFilters)}
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              className="flex-1"
             />
+
+            {/* View mode toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-card)]">
+                <button
+                  onClick={() => setViewMode('bento')}
+                  className={`rounded-l-lg p-2.5 transition-colors ${
+                    viewMode === 'bento'
+                      ? 'bg-[var(--cat-components)] text-white'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  }`}
+                  aria-label="Vista Bento"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`rounded-r-lg p-2.5 transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-[var(--cat-components)] text-white'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  }`}
+                  aria-label="Vista Grid"
+                >
+                  <List className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <MobileFilterTrigger
+                hasActiveFilters={activeFilterCount > 0}
+                activeCount={activeFilterCount}
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+              />
+            </div>
           </div>
 
           {/* Mobile filters panel */}
@@ -230,11 +232,11 @@ export default function HomePage() {
                     activeDifficulty={activeDifficulty}
                     activeElement={activeElement}
                     sortBy={sortBy}
-                    onCategoryChange={setActiveCategory}
-                    onDifficultyChange={setActiveDifficulty}
-                    onElementChange={setActiveElement}
+                    onCategoryChange={setCategory}
+                    onDifficultyChange={setDifficulty}
+                    onElementChange={setElement}
                     onSortChange={setSortBy}
-                    onClearAll={clearAllFilters}
+                    onClearAll={clearFilters}
                     resultCount={filteredProjects.length}
                   />
                 </div>
@@ -250,44 +252,48 @@ export default function HomePage() {
                 activeDifficulty={activeDifficulty}
                 activeElement={activeElement}
                 sortBy={sortBy}
-                onCategoryChange={setActiveCategory}
-                onDifficultyChange={setActiveDifficulty}
-                onElementChange={setActiveElement}
+                onCategoryChange={setCategory}
+                onDifficultyChange={setDifficulty}
+                onElementChange={setElement}
                 onSortChange={setSortBy}
-                onClearAll={clearAllFilters}
+                onClearAll={clearFilters}
                 resultCount={filteredProjects.length}
               />
             </div>
 
-            {/* Projects grid */}
+            {/* Projects */}
             <div className="flex-1">
-              <AnimatePresence mode="popLayout">
-                <motion.div
-                  layout
-                  className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
-                >
-                  {filteredProjects.map((project, index) => (
-                    <motion.div
-                      key={project.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{
-                        delay: Math.min(index * 0.02, 0.3),
-                        duration: 0.35,
-                        layout: {
-                          type: 'spring',
-                          stiffness: 300,
-                          damping: 30,
-                        },
-                      }}
-                    >
-                      <ProjectCard project={project} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </AnimatePresence>
+              {viewMode === 'bento' ? (
+                <BentoGrid projects={filteredProjects} />
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+                  >
+                    {filteredProjects.map((project, index) => (
+                      <motion.div
+                        key={project.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{
+                          delay: Math.min(index * 0.02, 0.3),
+                          duration: 0.35,
+                          layout: {
+                            type: 'spring',
+                            stiffness: 300,
+                            damping: 30,
+                          },
+                        }}
+                      >
+                        <ProjectCard project={project} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              )}
 
               {filteredProjects.length === 0 && (
                 <motion.div
@@ -299,7 +305,7 @@ export default function HomePage() {
                     No se encontraron proyectos con esos filtros.
                   </p>
                   <button
-                    onClick={clearAllFilters}
+                    onClick={clearFilters}
                     className="mt-4 text-sm text-[var(--cat-components)] hover:underline"
                   >
                     Limpiar todos los filtros

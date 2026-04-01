@@ -13,9 +13,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const project = getById(id);
   if (!project) return { title: 'Proyecto no encontrado' };
+  const cat = CATEGORIES[project.category];
   return {
     title: project.name,
     description: project.description,
+    openGraph: {
+      title: `${project.name} — Design Vault`,
+      description: `${project.description} | ${cat.label} · ${formatStars(project.stars)} ⭐`,
+      type: 'article',
+      images: [`/api/og?title=${encodeURIComponent(project.name)}&category=${project.category}&stars=${project.stars}`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: project.name,
+      description: project.description,
+    },
   };
 }
 

@@ -9,6 +9,7 @@ import {
   Clock,
   Type,
   TrendingUp,
+  Heart,
 } from 'lucide-react';
 import {
   CATEGORIES,
@@ -17,8 +18,10 @@ import {
   type Difficulty,
   type DesignElement,
 } from '@/data/catalog';
+import { useFilterStore } from '@/hooks/useFilter';
 
-export type SortOption = 'stars' | 'name' | 'date' | 'difficulty';
+import type { SortOption } from '@/hooks/useFilter';
+export type { SortOption };
 
 interface FilterSidebarProps {
   activeCategory: Category | 'all';
@@ -76,10 +79,12 @@ export function FilterSidebar({
   onClearAll,
   resultCount,
 }: FilterSidebarProps) {
+  const { favorites, showFavoritesOnly, setShowFavoritesOnly } = useFilterStore();
   const hasActiveFilters =
     activeCategory !== 'all' ||
     activeDifficulty !== 'all' ||
-    activeElement !== 'all';
+    activeElement !== 'all' ||
+    showFavoritesOnly;
 
   return (
     <aside className="sticky top-[calc(var(--nav-height)+1rem)] h-fit w-full shrink-0 space-y-6 lg:w-[260px]">
@@ -107,6 +112,24 @@ export function FilterSidebar({
         </span>{' '}
         proyectos encontrados
       </div>
+
+      {/* Favorites toggle */}
+      {favorites.length > 0 && (
+        <button
+          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-all ${
+            showFavoritesOnly
+              ? 'border-red-500/30 bg-red-500/10 text-red-400'
+              : 'border-[var(--border-default)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-secondary)]'
+          }`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${showFavoritesOnly ? 'fill-red-500' : ''}`} />
+          Favoritos
+          <span className="ml-auto rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[10px]">
+            {favorites.length}
+          </span>
+        </button>
+      )}
 
       {/* Sort */}
       <div>

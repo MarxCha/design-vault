@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { CATEGORIES, getByCategory, type Category } from '@/data/catalog';
 import { ProjectCard } from '@/components/showcase/ProjectCard';
+import { CategoryHeader } from '@/components/showcase/CategoryHeader';
 
 const validCategories = Object.keys(CATEGORIES) as Category[];
 
@@ -14,9 +15,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const cat = CATEGORIES[slug as Category];
   if (!cat) return { title: 'Categoría no encontrada' };
+  const count = getByCategory(slug as Category).length;
   return {
     title: cat.label,
     description: cat.description,
+    openGraph: {
+      title: `${cat.label} — Design Vault`,
+      description: `${count} proyectos open source de ${cat.label.toLowerCase()}`,
+      type: 'website',
+      images: [`/api/og?title=${encodeURIComponent(cat.label)}&category=${slug}&count=${count}`],
+    },
   };
 }
 
@@ -45,24 +53,7 @@ export default async function CategoryPage({
         Volver
       </Link>
 
-      {/* Category header */}
-      <div className="mb-10">
-        <div className="mb-3 flex items-center gap-3">
-          <div
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: cat.color }}
-          />
-          <span className="text-sm text-[var(--text-muted)]">
-            {projects.length} proyectos
-          </span>
-        </div>
-        <h1 className="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
-          {cat.label}
-        </h1>
-        <p className="max-w-2xl text-lg text-[var(--text-secondary)]">
-          {cat.description}
-        </p>
-      </div>
+      <CategoryHeader category={category} projectCount={projects.length} />
 
       {/* Projects grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
